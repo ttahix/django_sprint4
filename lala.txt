@@ -1,0 +1,137 @@
+============================= test session starts =============================
+platform win32 -- Python 3.10.11, pytest-7.1.3, pluggy-1.0.0 -- C:\Users\Маргарита\AppData\Local\Programs\Python\Python310\python.exe
+django: settings: blogicum.settings (from ini)
+rootdir: C:\yandex.zalupka\django_sprint4, configfile: pytest.ini, testpaths: tests/
+plugins: Faker-12.0.1, django-4.5.2
+collecting ... collected 25 items
+
+tests/test_content.py::TestContent::test_unpublished PASSED              [  4%]
+tests/test_content.py::TestContent::test_only_own_pubs_in_category PASSED [  8%]
+tests/test_content.py::TestContent::test_only_own_pubs_in_profile PASSED [ 12%]
+tests/test_content.py::TestContent::test_unpublished_category FAILED     [ 16%]
+tests/test_content.py::TestContent::test_future_posts PASSED             [ 20%]
+tests/test_content.py::TestContent::test_pagination PASSED               [ 24%]
+tests/test_content.py::TestContent::test_image_visible PASSED            [ 28%]
+tests/test_err_pages.py::test_custom_err_handlers PASSED                 [ 32%]
+tests/test_users.py::test_custom_err_handlers PASSED                     [ 36%]
+tests/test_users.py::test_profile FAILED                                 [ 40%]
+tests/test_comment.py::test_comment_created_at PASSED                    [ 44%]
+tests/test_comment.py::test_comment PASSED                               [ 48%]
+tests/test_comment.py::test_404_on_comment_deleted_post PASSED           [ 52%]
+tests/test_post.py::test_post_created_at PASSED                          [ 56%]
+tests/test_post.py::test_post PASSED                                     [ 60%]
+tests/test_comment.py::TestCommentModelAttrs::test_model_attrs[`post` field] <- tests\conftest.py PASSED [ 64%]
+tests/test_comment.py::TestCommentModelAttrs::test_model_attrs[`author` field] <- tests\conftest.py PASSED [ 68%]
+tests/test_comment.py::TestCommentModelAttrs::test_model_attrs[`text` field] <- tests\conftest.py PASSED [ 72%]
+tests/test_comment.py::TestCommentModelAttrs::test_model_attrs[`created_at` field] <- tests\conftest.py PASSED [ 76%]
+tests/test_emails.py::test_gitignore PASSED                              [ 80%]
+tests/test_emails.py::test_email_backend_settings PASSED                 [ 84%]
+tests/test_err_pages.py::test_csrf_failure_view PASSED                   [ 88%]
+tests/test_post.py::TestPostModelAttrs::test_model_attrs[`image` field] <- tests\conftest.py PASSED [ 92%]
+tests/test_post.py::TestPostModelAttrs::test_model_attrs[`pub_date` field] <- tests\conftest.py PASSED [ 96%]
+tests/test_static_pages.py::test_static_pages_as_cbv PASSED              [100%]
+
+================================== FAILURES ===================================
+____________________ TestContent.test_unpublished_category ____________________
+
+self = <test_content.TestContent object at 0x0000021FCD8877C0>
+user_client = <django.test.client.Client object at 0x0000021FCDDA2E90>
+posts_with_unpublished_category = [<Post: Card Program Floor Evidence Traditional Case>, <Post: Him Bag Idea Such Specific Several>, <Post: Nearly Get Officer Country Face Degree>]
+
+    def test_unpublished_category(
+        self, user_client, posts_with_unpublished_category
+    ):
+        profile_response = self.profile_tester.user_client_testget()
+        context_posts = profile_response.context.get(
+            self.profile_tester.items_key
+        )
+        expected_n = self.profile_tester.n_or_page_size(
+            len(posts_with_unpublished_category)
+        )
+        assert len(context_posts) == expected_n, (
+            "Убедитесь, что на странице пользователя автор может видеть свои"
+            " посты, принадлежащие категории, снятой с публикации."
+        )
+    
+        main_response = self.main_tester.user_client_testget()
+        context_posts = main_response.context.get(self.main_tester.items_key)
+>       assert len(context_posts) == 0, (
+            "Убедитесь, что на главной странице не отображаются посты, "
+            "принадлежащие категории, снятой с публикации."
+        )
+E       AssertionError: Убедитесь, что на главной странице не отображаются посты, принадлежащие категории, снятой с публикации.
+E       assert 3 == 0
+E        +  where 3 = len(<Page 1 of 1>)
+
+tests\test_content.py:425: AssertionError
+________________________________ test_profile _________________________________
+
+user = <User: lambyvette>, another_user = <User: ebenitez>
+user_client = <django.test.client.Client object at 0x0000021FCDF41750>
+another_user_client = <django.test.client.Client object at 0x0000021FCDF292A0>
+unlogged_client = <django.test.client.Client object at 0x0000021FCDD5D120>
+
+    @pytest.mark.django_db
+    def test_profile(
+            user, another_user, user_client, another_user_client, unlogged_client
+    ):
+        user_url = f"/profile/{user.username}/"
+        printed_url = "/profile/<username>/"
+    
+        User = get_user_model()
+        status_code_not_404_err_msg = (
+            "Убедитесь, что при обращении к странице несуществующего "
+            "пользователя возвращается статус 404."
+        )
+        try:
+            response = user_client.get("/profile/this_is_unexisting_user_name/")
+        except User.DoesNotExist:
+            raise AssertionError(status_code_not_404_err_msg)
+    
+        assert response.status_code == HTTPStatus.NOT_FOUND, (
+            status_code_not_404_err_msg)
+    
+        user_response: HttpResponse = user_client.get(user_url)
+    
+        user_content = user_response.content.decode("utf-8")
+    
+        anothers_same_page_response: HttpResponse = another_user_client.get(
+            user_url
+        )
+        anothers_same_page_content = anothers_same_page_response.content.decode(
+            "utf-8"
+        )
+    
+        unlogged_same_page_response: HttpResponse = unlogged_client.get(user_url)
+        unlogged_same_page_content = unlogged_same_page_response.content.decode(
+            "utf-8"
+        )
+    
+        for profile_user, profile_user_content in (
+                (user, user_content),
+                (user, unlogged_same_page_content),
+                (user, anothers_same_page_content),
+        ):
+>           _test_user_info_displayed(
+                profile_user, profile_user_content, printed_url
+            )
+
+tests\test_users.py:135: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+profile_user = <User: lambyvette>
+profile_user_content = '\n\n<!DOCTYPE html>\n<html lang="ru">\n  <head>\n    <meta charset="utf-8">\n    <meta name="viewport" content="width...n    </main>\n    <footer class="border-top text-center py-3">\n  <p>© Блогикум</p>    \n</footer>\n  </body>\n</html>'
+printed_url = '/profile/<username>/'
+
+    def _test_user_info_displayed(
+            profile_user: Model, profile_user_content: str, printed_url: str
+    ) -> None:
+        if profile_user.first_name not in profile_user_content:
+>           raise AssertionError(
+                f"Убедитесь, что на странице `{printed_url}` отображается имя"
+                " пользователя."
+            )
+E           AssertionError: Убедитесь, что на странице `/profile/<username>/` отображается имя пользователя.
+
+tests\test_users.py:182: AssertionError
+======================== 2 failed, 23 passed in 2.32s =========================
