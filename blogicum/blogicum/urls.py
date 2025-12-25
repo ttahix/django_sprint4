@@ -39,4 +39,5 @@ handler404 = 'pages.views.page_not_found'
 handler403 = 'pages.views.permission_denied'
 handler500 = 'pages.views.server_error'
 
+
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
