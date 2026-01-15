@@ -8,9 +8,10 @@ from django.views.generic import DetailView, ListView, CreateView, UpdateView, D
 from django.contrib.auth.views import LoginView
 from django.urls import reverse
 from django.db.models import Count
-from .forms import PostForm, CommentForm
+from .forms import PostForm, PostEditForm, CommentForm
 from .models import Post, Category, Comment
 from .utils import paginate_queryset  # Новый импорт
+
 
 User = get_user_model()
 POSTS_PER_PAGE = 10
@@ -174,7 +175,7 @@ class OwnerRequiredMixin(UserPassesTestMixin):
 
 class PostUpdateView(LoginRequiredMixin, OwnerRequiredMixin, UpdateView):
     model = Post
-    form_class = PostForm
+    form_class = PostEditForm
     template_name = 'blog/create.html'
     pk_url_kwarg = 'post_id'
 

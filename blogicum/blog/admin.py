@@ -18,7 +18,8 @@ class LocationAdmin(admin.ModelAdmin):
 
 
 class PostAdmin(admin.ModelAdmin):
-    list_display = ('title', 'author', 'category', 'location', 'is_published', 'pub_date')
+    list_display = ('title', 'author', 'category', 'location', 'is_published',
+                    'pub_date')
     list_editable = ('is_published', 'category')
     list_filter = ('is_published', 'category', 'author', 'location')
     search_fields = ('title', 'text')
@@ -41,17 +42,18 @@ class CommentAdmin(admin.ModelAdmin):
             'classes': ('wide',)
         }),
     )
-    
+
     def short_text(self, obj):
         if len(obj.text) > 100:
             return f"{obj.text[:100]}..."
         return obj.text
     short_text.short_description = 'Текст комментария'
-    
+
     def save_model(self, request, obj, form, change):
         if not change:
             obj.author = request.user
         super().save_model(request, obj, form, change)
+
 
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Location, LocationAdmin)

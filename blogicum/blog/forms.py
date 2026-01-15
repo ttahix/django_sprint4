@@ -8,6 +8,8 @@ User = get_user_model()
 
 
 class CustomCreationForm(UserCreationForm):
+    email = forms.EmailField(required=True)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field_name in self.fields:
@@ -17,10 +19,22 @@ class CustomCreationForm(UserCreationForm):
         model = User
         fields = ('username', 'email', 'first_name', 'last_name')
 
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if User.objects.filter(email=email).exists:
+            raise forms.ValidationError("Пользователь с таким Email уже существует")
+        return email
+
 
 class PostForm(forms.ModelForm):
+    pub_date = forms.DateTimeField(required=False,
+                                   widget=forms.DateTimeInput(attrs={'type': 'datetime-local'})
+                                   )
+
     class Meta:
+
         model = Post
+        fields = '__all__'
         exclude = ('author',)
         widgets = {
             'pub_date': forms.DateTimeInput(attrs={
@@ -59,7 +73,49 @@ class PostForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['pub_date'].required = False
+        self.fields['pub_date'].label = 'Дата публикации'
+        self.fields['pub_date'].help_text = 'Если выбрать дату и время в будущем, то публикация будет отложенной.'
+        self.fields['image'].widget.attrs.update({'class': 'form-control'})
+
+
+class PostEditForm(forms.ModelForm):
+    class Meta:
+        model = Post
+        exclude = ('author',)
+        widgets = {
+            'is_published': forms.CheckboxInput(attrs={
+                'class': 'form-check-input',
+            }),
+            'text': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 10,
+            }),
+            'title': forms.TextInput(attrs={
+                'class': 'form-control',
+            }),
+            'location': forms.Select(attrs={
+                'class': 'form-control',
+            }),
+            'category': forms.Select(attrs={
+                'class': 'form-control',
+            }),
+        }
+        labels = {
+            'is_published': 'Опубликовать сейчас',
+            'pub_date': 'Дата и время публикации',
+            'text': 'Текст поста',
+            'title': 'Заголовок',
+            'location': 'Местоположение',
+            'category': 'Категория',
+            'image': 'Изображение',
+        }
+        help_texts = {
+            'is_published': 'Снимите галочку, чтобы скрыть публикацию.',
+            'pub_date': 'Если выбрать дату и время в будущем, то публикация будет отложенной.',
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.fields['image'].widget.attrs.update({'class': 'form-control'})
 
 
